@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, StyleSheet, ImageBackground } from 'react-native';
+import { View, StyleSheet, ImageBackground, } from 'react-native';
 import { Text, TextInput, Button, Appbar } from 'react-native-paper';
+import { Link } from 'expo-router';
 
 const App = () => {
   return (
@@ -33,6 +34,8 @@ const App = () => {
           >
             Prihlásenie
           </Button>
+          <Link href="/create_event">Vytvoriť event</Link>
+
         </View>
     </View>
   );
