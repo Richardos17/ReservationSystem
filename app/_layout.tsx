@@ -33,12 +33,13 @@ export default function RootLayout() {
 
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: true,     title: "Športoviská Petržalka",
+        <Stack.Screen name="(tabs)" options={{ headerShown: true,     title: "Hráme SPOLU",
  }} />
         <Stack.Screen name="+not-found" />
-        <Stack.Screen name="create_event" options={{ headerShown: true,     title: "Športoviská Petržalka",
+        <Stack.Screen name="create_event" options={{ headerShown: true,     title: "Hráme SPOLU",
  }}/>
-
+<Stack.Screen name="bookingSum" options={{ headerShown: true,     title: "Hráme SPOLU",
+ }}/>
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

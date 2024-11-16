@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, FlatList, Image } from "react-native";
+import { View, Text, StyleSheet, FlatList, Button, TouchableOpacity } from "react-native";
 import {
   Searchbar,
-  Button,
   Menu,
   Divider,
   Chip,
@@ -10,9 +9,8 @@ import {
   IconButton,
 } from "react-native-paper";
 import { db } from "../../api/firebaseClient"; // Assuming firebase is set up
-import { getFirestore, collection, getDocs, addDoc } from "firebase/firestore"; 
+import { getFirestore, collection, getDocs, addDoc } from "firebase/firestore";
 import DateTimePicker from "react-native-modal-datetime-picker";
-import PushNotification from "react-native-push-notification";
 
 const sportsData = [
   {
@@ -58,12 +56,7 @@ const SportsSearch = () => {
   const [date, selectDate] = useState<Date>();
   const [price, setPrice] = useState<number>();
   const [title, setTitle] = useState<string>();
-  const sendNotification = (message: string) => {
-    PushNotification.localNotification({
-      title: "Event Notification",
-      message,
-    });
-  };
+
   // Fetch events from Firebase
   const fetchEvents = async () => {
     try {
@@ -71,34 +64,34 @@ const SportsSearch = () => {
       const eventsSnapshot = await getDocs(eventsCollection);
       const eventData = eventsSnapshot.docs.map((doc) => {
         const data = doc.data();
-        
+
         return {
           id: doc.id, // unique ID from Firestore
           title: data.title,
-          start: data.start.toDate(),  // Convert Firebase Timestamp to JS Date object
-          end: data.end.toDate(),      // Convert Firebase Timestamp to JS Date object
-          location: data.location,
+          start: data.start, // Convert Firebase Timestamp to JS Date object
+          end: data.end, // Convert Firebase Timestamp to JS Date object
+          location: data.playground,
+          max: data.maxPeople,
+          min: data.minPeople,
+          price: data.price
+
         };
       });
       if (JSON.stringify(eventData) !== JSON.stringify(events)) {
-     
-        sendNotification("New event update!"); // Trigger notification
       }
       setEvents(eventData);
-      console.log(eventData)
     } catch (error) {
       console.error("Error fetching events:", error);
     }
   };
   useEffect(() => {
-   
     // Start fetching data every second
-    const interval = setInterval(() => {
-      fetchEvents();
-    }, 1000);
+    //const interval = setInterval(() => {
+    fetchEvents();
+    // }, 1000);
 
     // Cleanup interval on unmount
-    return () => clearInterval(interval);
+    // return () => clearInterval(interval);
   }, []);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
@@ -122,7 +115,6 @@ const SportsSearch = () => {
 
   // Filtering data based on search query, selected date, and selected tag
   const filteredData = events.filter((item) => {
-    console.log(item.title)
     const normalizedTitle = item.title
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, ""); // Removing diacritics
@@ -136,6 +128,7 @@ const SportsSearch = () => {
     const matchesTag = selectedTag ? item.tags.includes(selectedTag) : true;
     return matchesSearch && matchesTag;
   });
+  console.log(filteredData);
   const resetFilters = () => {
     setSelectedDate("");
     setSelectedTag("");
@@ -154,31 +147,13 @@ const SportsSearch = () => {
       {/* Date and Sport Selector */}
       <View style={styles.dateSportContainer}>
         {/* Date Picker Button */}
-        <Button
-          mode="contained"
-          onPress={showDatePicker}
-          icon="calendar"
-          style={styles.button}
-          labelStyle={styles.buttonText}
-        >
-          {selectedDate || "Dátum"}
-        </Button>
+        <Button onPress={showDatePicker} title={selectedDate || "Dátum"} />
 
         {/* Dropdown Menu */}
         <Menu
           visible={menuVisible}
           onDismiss={closeMenu}
-          anchor={
-            <Button
-              mode="contained"
-              onPress={openMenu}
-              icon="soccer"
-              style={styles.button}
-              labelStyle={styles.buttonText}
-            >
-              {selectedTag || "Šport"}
-            </Button>
-          }
+          anchor={<Button onPress={openMenu} title={selectedTag || "Šport"} />}
         >
           <Menu.Item
             onPress={() => {
@@ -204,15 +179,7 @@ const SportsSearch = () => {
             title="Tenis"
           />
         </Menu>
-        <Button
-          mode="contained"
-          onPress={resetFilters}
-          icon="refresh"
-          style={styles.button}
-          labelStyle={styles.buttonText}
-        >
-          Reset
-        </Button>
+        <Button onPress={resetFilters} title="Reset" />
       </View>
 
       {/* Results List */}
@@ -221,18 +188,50 @@ const SportsSearch = () => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <Card style={styles.resultCard}>
-            <Card.Title
-              title={item.title}
-              left={(props) => <IconButton {...props} icon="school" />}
-              right={(props) => (
-                <IconButton {...props} icon="dots-horizontal" />
-              )}
-            />
-            <Card.Cover source={{ uri: item.image }} style={styles.cardImage} />
-            <Text>{item.user}</Text>
-            <Text>{item.startDateTime}</Text>
-            <Text>{item.capacity}</Text>
+            <View>
+              <View style={styles.row}>
+                <Text style={styles.cardTitle}>{item.title}</Text>
+                <Text style={styles.cardTitle}>
+                  {new Intl.DateTimeFormat("sk-SK", {
+                    year: "numeric",
+                    month: "long", // Full month name (e.g., "november")
+                    day: "numeric", // Day of the month (e.g., "16")
+                  }).format(item.start)}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.cardSubTitle}>{item.location}</Text>
+              <Text style={styles.cardSubTitle}>
+                {new Intl.DateTimeFormat("sk-SK", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                  hour12: false, // Ensure 24-hour format
+                }).format(item.start)}{" "}
+                -{" "}
+                {new Intl.DateTimeFormat("sk-SK", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                  hour12: false, // Ensure 24-hour format
+                }).format(item.end)}
+              </Text>
+            </View>
 
+            <Card.Cover
+              source={require("../../assets/images/DA5A8587.jpg")}
+              style={styles.cardImage}
+            />
+            <Text style={styles.cardInfo}>Maximálny počet účastníkov: {item.max}</Text>
+
+            <Text style={styles.cardInfo}>Minimálny počet účastníkov: {item.min}</Text>
+
+
+            <Text style={styles.cardInfo}>Cena: {item.price} kredity</Text>
+            <TouchableOpacity style={styles.cardButton}>
+              <Text style={styles.cardButtonText}>Pridať sa</Text>
+            </TouchableOpacity>
           </Card>
         )}
         ListEmptyComponent={
@@ -273,23 +272,50 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 10,
   },
-  button: {
-    flex: 1,
-    marginHorizontal: 5,
-    borderRadius: 10,
-    backgroundColor: "#e0e0e0",
+  cardButton: {
+    backgroundColor: "#39484E",
+    borderWidth: 2, // Add border width
+    borderColor: "black",
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    marginHorizontal: 10,
+    marginTop: 10,
+    padding: 15
   },
-  buttonText: {
-    color: "#333",
+  cardButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 20
   },
   resultCard: {
     marginTop: 20,
     borderRadius: 10,
     elevation: 2,
-    backgroundColor: "#fff",
+    backgroundColor: "#A3ACA9",
+    padding: 15,
   },
   cardImage: {
     borderRadius: 10,
+    marginBottom: 10, // Optional: Add spacing above the row
+  },
+  cardTitle: {
+    fontSize: 25,
+    fontWeight: "500",
+
+  },
+  cardSubTitle: {
+    fontSize: 15,
+    fontWeight: "500",  },
+  cardInfo: {
+    fontWeight: "500",
+    fontSize: 20
+  },
+  row: {
+    flexDirection: "row", // Align children horizontally
+    alignItems: "center", // Center items vertically
+    marginBottom: 10, // Optional: Add spacing above the row
+    justifyContent: "space-between",
   },
   tagsContainer: {
     flexDirection: "row",
