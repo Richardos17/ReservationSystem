@@ -12,6 +12,7 @@ import {
 import { db } from "../../api/firebaseClient"; // Assuming firebase is set up
 import { getFirestore, collection, getDocs, addDoc } from "firebase/firestore"; 
 import DateTimePicker from "react-native-modal-datetime-picker";
+import PushNotification from "react-native-push-notification";
 
 const sportsData = [
   {
@@ -57,11 +58,16 @@ const SportsSearch = () => {
   const [date, selectDate] = useState<Date>();
   const [price, setPrice] = useState<number>();
   const [title, setTitle] = useState<string>();
-
+  const sendNotification = (message: string) => {
+    PushNotification.localNotification({
+      title: "Event Notification",
+      message,
+    });
+  };
   // Fetch events from Firebase
   const fetchEvents = async () => {
     try {
-      const eventsCollection = await collection(db, "reservations");
+      const eventsCollection = await collection(db, "events");
       const eventsSnapshot = await getDocs(eventsCollection);
       const eventData = eventsSnapshot.docs.map((doc) => {
         const data = doc.data();
@@ -71,11 +77,13 @@ const SportsSearch = () => {
           title: data.title,
           start: data.start.toDate(),  // Convert Firebase Timestamp to JS Date object
           end: data.end.toDate(),      // Convert Firebase Timestamp to JS Date object
-          description: data.description,
           location: data.location,
         };
       });
-
+      if (JSON.stringify(eventData) !== JSON.stringify(events)) {
+     
+        sendNotification("New event update!"); // Trigger notification
+      }
       setEvents(eventData);
       console.log(eventData)
     } catch (error) {
@@ -83,9 +91,7 @@ const SportsSearch = () => {
     }
   };
   useEffect(() => {
-    if (Notification.permission === "default") {
-      Notification.requestPermission();
-    }
+   
     // Start fetching data every second
     const interval = setInterval(() => {
       fetchEvents();
@@ -115,7 +121,8 @@ const SportsSearch = () => {
   const closeMenu = () => setMenuVisible(false);
 
   // Filtering data based on search query, selected date, and selected tag
-  const filteredData = sportsData.filter((item) => {
+  const filteredData = events.filter((item) => {
+    console.log(item.title)
     const normalizedTitle = item.title
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, ""); // Removing diacritics
@@ -222,15 +229,10 @@ const SportsSearch = () => {
               )}
             />
             <Card.Cover source={{ uri: item.image }} style={styles.cardImage} />
-            <Text>{item.creator}</Text>
-            <Text>{item.date}</Text>
-            <View style={styles.tagsContainer}>
-              {item.tags.map((tag) => (
-                <Chip key={tag} style={styles.chip}>
-                  {tag}
-                </Chip>
-              ))}
-            </View>
+            <Text>{item.user}</Text>
+            <Text>{item.startDateTime}</Text>
+            <Text>{item.capacity}</Text>
+
           </Card>
         )}
         ListEmptyComponent={

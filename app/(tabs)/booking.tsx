@@ -11,7 +11,7 @@ const EventCalendar = () => {
   const [events, setEvents] = useState<any[]>([]);
   const fetchEvents = async () => {
     try {
-      const eventsCollection = await collection(db, "reservations");
+      const eventsCollection = await collection(db, "events");
       const eventsSnapshot = await getDocs(eventsCollection);
       const eventData = eventsSnapshot.docs.map((doc) => {
         const data = doc.data();

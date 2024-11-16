@@ -9,9 +9,9 @@ import EventCalendar from '@/components/Calendar';
 const user = "Alex Zalesak"
 const App = () => {
   const [events, setEvents] = useState<any[]>([]);
-  const [date, selectDate] = useState<Date>();
+  const [date, selectDate] = useState<Date>(new Date(2024, 11, 1));
   const [price, setPrice] = useState<number>();
-  const [title, setTitle] = useState<string>();
+  const [title, setTitle] = useState<string>("Game");
 
   // Fetch events from Firebase
   const fetchEvents = async () => {
@@ -68,11 +68,12 @@ const App = () => {
     await addDoc(collection(db, "events"), {
       user: user,
       title: title,
-      start: date.toISOString().slice(0, 16),
-      end: endDateTime.toISOString().slice(0, 16),
+      start: date,
+      end: endDateTime,
       playground: "ZŠ Lachova 1",
       capacity: selectedNumber
     });
+    console.log("Adding")
     fetchEvents();
   };
   const formatDate = (date: Date): string => {
