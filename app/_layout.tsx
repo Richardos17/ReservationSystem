@@ -36,7 +36,8 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: true,     title: "Športoviská Petržalka",
  }} />
         <Stack.Screen name="+not-found" />
-        <Stack.Screen name="create_event" />
+        <Stack.Screen name="create_event" options={{ headerShown: true,     title: "Športoviská Petržalka",
+ }}/>
 
       </Stack>
       <StatusBar style="auto" />

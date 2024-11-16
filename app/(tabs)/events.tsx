@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, FlatList, Image } from "react-native";
 import {
   Searchbar,
@@ -9,6 +9,8 @@ import {
   Card,
   IconButton,
 } from "react-native-paper";
+import { db } from "../../api/firebaseClient"; // Assuming firebase is set up
+import { getFirestore, collection, getDocs, addDoc } from "firebase/firestore"; 
 import DateTimePicker from "react-native-modal-datetime-picker";
 
 const sportsData = [
@@ -51,6 +53,47 @@ const sportsData = [
 ];
 
 const SportsSearch = () => {
+  const [events, setEvents] = useState<any[]>([]);
+  const [date, selectDate] = useState<Date>();
+  const [price, setPrice] = useState<number>();
+  const [title, setTitle] = useState<string>();
+
+  // Fetch events from Firebase
+  const fetchEvents = async () => {
+    try {
+      const eventsCollection = await collection(db, "reservations");
+      const eventsSnapshot = await getDocs(eventsCollection);
+      const eventData = eventsSnapshot.docs.map((doc) => {
+        const data = doc.data();
+        
+        return {
+          id: doc.id, // unique ID from Firestore
+          title: data.title,
+          start: data.start.toDate(),  // Convert Firebase Timestamp to JS Date object
+          end: data.end.toDate(),      // Convert Firebase Timestamp to JS Date object
+          description: data.description,
+          location: data.location,
+        };
+      });
+
+      setEvents(eventData);
+      console.log(eventData)
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    }
+  };
+  useEffect(() => {
+    if (Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+    // Start fetching data every second
+    const interval = setInterval(() => {
+      fetchEvents();
+    }, 1000);
+
+    // Cleanup interval on unmount
+    return () => clearInterval(interval);
+  }, []);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [menuVisible, setMenuVisible] = useState(false);

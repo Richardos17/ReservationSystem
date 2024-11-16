@@ -9,32 +9,32 @@ import { getFirestore, collection, getDocs } from "firebase/firestore";
 
 const EventCalendar = () => {
   const [events, setEvents] = useState<any[]>([]);
+  const fetchEvents = async () => {
+    try {
+      const eventsCollection = await collection(db, "reservations");
+      const eventsSnapshot = await getDocs(eventsCollection);
+      const eventData = eventsSnapshot.docs.map((doc) => {
+        const data = doc.data();
+        
+        return {
+          id: doc.id, // unique ID from Firestore
+          title: data.title,
+          start: data.start.toDate(),  // Convert Firebase Timestamp to JS Date object
+          end: data.end.toDate(),      // Convert Firebase Timestamp to JS Date object
+          description: data.description,
+          location: data.location,
+        };
+      });
 
+      setEvents(eventData);
+      console.log(eventData)
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    }
+  };
   useEffect(() => {
     // Fetch events from Firebase
-    const fetchEvents = async () => {
-      try {
-        const eventsCollection = await collection(db, "reservations");
-        const eventsSnapshot = await getDocs(eventsCollection);
-        const eventData = eventsSnapshot.docs.map((doc) => {
-          const data = doc.data();
-          
-          return {
-            id: doc.id, // unique ID from Firestore
-            title: data.title,
-            start: data.start.toDate(),  // Convert Firebase Timestamp to JS Date object
-            end: data.end.toDate(),      // Convert Firebase Timestamp to JS Date object
-            description: data.description,
-            location: data.location,
-          };
-        });
-
-        setEvents(eventData);
-        console.log(eventData)
-      } catch (error) {
-        console.error("Error fetching events:", error);
-      }
-    };
+    
 
     fetchEvents();
   }, []);
