@@ -15,7 +15,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 const App = () => {
   const [events, setEvents] = useState<any[]>([]);
-  const [date, setDate] = useState<Date>(new Date(2024, 11, 20));
+  const [date, setDate] = useState<Date>(new Date(2024, 10, 20));
   const [show, setShow] = useState(false);
   const [price, setPrice] = useState<number>();
   const [sport, setSport] = useState<String>();
